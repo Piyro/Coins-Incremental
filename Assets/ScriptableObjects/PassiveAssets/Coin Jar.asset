@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca9410915d21cf44992d65773828872c, type: 3}
+  m_Name: Coin Jar
+  m_EditorClassIdentifier: Assembly-CSharp::CoinTowerIdle.ScriptableObjects.PassiveAssetDefinition
+  ID: 1
+  DisplayName: Coin Jar
+  Description: Coin Jar
+  Icon: {fileID: 0}
+  BaseCost: 250
+  CostGrowth: 1.15
+  BaseIncome: 5
+  IncomeGrowth: 1.1
+  WorldPrefab: {fileID: 0}
+  UnlockOrder: 0
