@@ -1,60 +1,52 @@
 using System.IO;
 using UnityEngine;
-using CoinTowerIdle.Core;
 
-namespace CoinTowerIdle.Save
+namespace CoinTowerIdle.SaveSystem
 {
-    public class SaveManager : Singleton<SaveManager>
+    public class SaveManager : MonoBehaviour
     {
-        private const string FileName = "save.json";
-
-        public SaveData Data { get; private set; }
+        public static SaveManager Instance { get; private set; }
 
         private string SavePath =>
-            Path.Combine(Application.persistentDataPath, FileName);
+            Path.Combine(Application.persistentDataPath, "save.json");
 
-        protected override void Awake()
+        private void Awake()
         {
-            base.Awake();
-
-            Load();
-        }
-
-        public void Save()
-        {
-            Data.LastSaveTicks = System.DateTime.UtcNow.Ticks;
-
-            string json = JsonUtility.ToJson(Data, true);
-
-            File.WriteAllText(SavePath, json);
-        }
-
-        public void Load()
-        {
-            if (!File.Exists(SavePath))
+            if (Instance != null)
             {
-                Data = new SaveData();
-                Save();
+                Destroy(gameObject);
                 return;
             }
 
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
+        public void Save(SaveData data)
+        {
+            string json = JsonUtility.ToJson(data, true);
+            File.WriteAllText(SavePath, json);
+
+            Debug.Log($"Saved: {SavePath}");
+        }
+
+        public SaveData Load()
+        {
+            if (!File.Exists(SavePath))
+                return null;
+
             string json = File.ReadAllText(SavePath);
 
-            Data = JsonUtility.FromJson<SaveData>(json);
+            Debug.Log("Save Loaded");
 
-            if (Data == null)
-                Data = new SaveData();
+            return JsonUtility.FromJson<SaveData>(json);
         }
 
-        private void OnApplicationQuit()
+        public void DeleteSave()
         {
-            Save();
+            if (File.Exists(SavePath))
+                File.Delete(SavePath);
         }
 
-        private void OnApplicationPause(bool pause)
-        {
-            if (pause)
-                Save();
-        }
     }
 }

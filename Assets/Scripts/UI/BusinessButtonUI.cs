@@ -13,16 +13,25 @@ namespace CoinTowerIdle.UI
         [SerializeField] private TMP_Text levelText;
         [SerializeField] private TMP_Text incomeText;
         [SerializeField] private TMP_Text costText;
-
         [SerializeField] private Button buyButton;
 
         private PassiveIncomeManager manager;
-
         private PassiveAssetInstance asset;
 
-        public void Initialize(
-            PassiveIncomeManager manager,
-            PassiveAssetInstance asset)
+        private float refreshTimer;
+
+        private void Update()
+        {
+            refreshTimer += Time.deltaTime;
+
+            if (refreshTimer >= 0.25f)
+            {
+                refreshTimer = 0f;
+                Refresh();
+            }
+        }
+
+        public void Initialize(PassiveIncomeManager manager, PassiveAssetInstance asset)
         {
             this.manager = manager;
             this.asset = asset;
@@ -40,6 +49,8 @@ namespace CoinTowerIdle.UI
         private void OnDisable()
         {
             EventBus.Unsubscribe<MoneyChangedEvent>(OnMoneyChanged);
+
+            buyButton.onClick.RemoveListener(Buy);
         }
 
         private void OnMoneyChanged(MoneyChangedEvent e)
@@ -55,22 +66,18 @@ namespace CoinTowerIdle.UI
             }
         }
 
-        public void Refresh()
+        private void Refresh()
         {
-            nameText.text =
-                asset.Definition.DisplayName;
 
-            levelText.text =
-                $"Lv {asset.Level}";
-
-            incomeText.text =
-                $"${asset.Income:0.##}/sec";
-
-            costText.text =
-                $"${asset.Cost:N0}";
+            nameText.text = asset.Definition.DisplayName;
+            levelText.text = $"Level {asset.Level}";
+            incomeText.text = $"${asset.Income:0.##}/sec";
+            costText.text = $"${asset.Cost:0}";
 
             buyButton.interactable =
                 EconomyManager.Instance.Money >= asset.Cost;
         }
+
+
     }
 }

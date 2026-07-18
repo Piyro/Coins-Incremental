@@ -15,6 +15,32 @@ namespace CoinTowerIdle.Economy
         private readonly Dictionary<int, UpgradeInstance> upgrades =
             new();
 
+
+        public void LoadLevels(List<int> levels)
+        {
+            StatManager.Instance.ResetAll();
+
+            int i = 0;
+
+            foreach (var upgrade in upgrades.Values)
+            {
+                if (i >= levels.Count)
+                    break;
+
+                upgrade.Level = levels[i];
+
+                for (int level = 0; level < upgrade.Level; level++)
+                {
+                    StatManager.Instance.AddModifier(
+                        upgrade.Definition.TargetStat,
+                        new StatModifier(
+                            upgrade.Definition.ModifierType,
+                            upgrade.Definition.ValuePerLevel));
+                }
+
+                i++;
+            }
+        }
         private void Awake()
         {
             if (database == null)
@@ -86,5 +112,16 @@ namespace CoinTowerIdle.Economy
 
         public IReadOnlyDictionary<int, UpgradeInstance>
             Upgrades => upgrades;
+
+        public void ResetProgress()
+        {
+            foreach (var upgrade in upgrades.Values)
+            {
+                upgrade.Level = 0;
+            }
+
+            StatManager.Instance.ResetAll();
+        }
     }
+
 }

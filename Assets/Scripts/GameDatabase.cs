@@ -11,5 +11,7 @@ namespace CoinTowerIdle.ScriptableObjects
         public List<PassiveAssetDefinition> PassiveAssets = new();
 
         public List<PrestigeNodeDefinition> PrestigeNodes = new();
+
+        public List<TowerStageDefinition> TowerStages = new();
     }
 }

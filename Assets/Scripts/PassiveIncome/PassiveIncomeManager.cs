@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CoinTowerIdle.ScriptableObjects;
 using CoinTowerIdle.Managers;
+using CoinTowerIdle.Events;
 
 namespace CoinTowerIdle.PassiveIncome
 {
@@ -10,34 +11,34 @@ namespace CoinTowerIdle.PassiveIncome
         [SerializeField]
         private GameDatabase database;
 
-        private readonly List<PassiveAssetInstance> assets =
-            new();
+        private readonly List<PassiveAssetInstance> assets = new();
+
+        private double totalIncomePerSecond;
 
         public IReadOnlyList<PassiveAssetInstance> Assets => assets;
 
+        public double TotalIncomePerSecond => totalIncomePerSecond;
+
         private void Awake()
         {
-            foreach (var asset in database.PassiveAssets)
+            foreach (var definition in database.PassiveAssets)
             {
-                assets.Add(
-                    new PassiveAssetInstance
-                    {
-                        Definition = asset
-                    });
+                assets.Add(new PassiveAssetInstance
+                {
+                    Definition = definition
+                });
             }
+
+            RecalculateIncome();
         }
 
         private void Update()
         {
-            double income = 0;
-
-            foreach (var asset in assets)
-            {
-                income += asset.Income;
-            }
+            if (totalIncomePerSecond <= 0)
+                return;
 
             EconomyManager.Instance.AddMoney(
-                income * Time.deltaTime);
+                totalIncomePerSecond * Time.deltaTime);
         }
 
         public bool Purchase(PassiveAssetInstance asset)
@@ -47,17 +48,52 @@ namespace CoinTowerIdle.PassiveIncome
 
             asset.Level++;
 
+            RecalculateIncome();
+
             return true;
         }
 
-        public double TotalIncomePerSecond()
+        private void RecalculateIncome()
         {
-            double total = 0;
+            totalIncomePerSecond = 0;
 
             foreach (var asset in assets)
-                total += asset.Income;
+            {
+                totalIncomePerSecond += asset.Income;
+            }
 
-            return total;
+            EventBus.Publish(
+                new PassiveIncomeChangedEvent(totalIncomePerSecond));
+        }
+
+        public void LoadLevels(List<int> levels)
+        {
+            for (int i = 0; i < assets.Count && i < levels.Count; i++)
+            {
+                assets[i].Level = levels[i];
+            }
+
+            RecalculateIncome();
+        }
+
+        public void ResetLevels()
+        {
+            foreach (var asset in assets)
+            {
+                asset.Level = 0;
+            }
+
+            RecalculateIncome();
+        }
+
+        public void ResetProgress()
+        {
+            foreach (var asset in assets)
+            {
+                asset.Level = 0;
+            }
+
+            RecalculateIncome();
         }
     }
 }

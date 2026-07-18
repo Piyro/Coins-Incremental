@@ -12,6 +12,8 @@ namespace CoinTowerIdle.Managers
 
         public double PassiveIncomePerSecond { get; private set; }
 
+        public double LifetimeMoneyEarned { get; private set; }
+
         protected override void Awake()
         {
             base.Awake();
@@ -22,7 +24,7 @@ namespace CoinTowerIdle.Managers
         public void AddMoney(double amount)
         {
             Money += amount;
-
+            LifetimeMoneyEarned += amount;
             Debug.Log($"Money: {Money}");
 
             dirty = true;
@@ -50,19 +52,44 @@ namespace CoinTowerIdle.Managers
 
         public bool SpendMoney(double amount)
         {
+            Debug.Log($"SpendMoney: Money={Money}, Cost={amount}");
+
             if (Money < amount)
+            {
+                Debug.Log("Not enough money!");
                 return false;
+            }
 
             Money -= amount;
 
-            dirty = true;
+            Debug.Log($"Purchase successful. Remaining: {Money}");
+
+            EventBus.Publish(new MoneyChangedEvent(Money));
 
             return true;
-        }   
+        }
+
+        public void SetMoney(double money)
+        {
+            Money = money;
+
+            EventBus.Publish(new MoneyChangedEvent(Money));
+        }
+
+        public void SetLifetimeMoney(double money)
+        {
+            LifetimeMoneyEarned = money;
+        }
 
         public void AddPassiveIncome(double income)
         {
             PassiveIncomePerSecond += income;
+        }
+
+        public void ResetProgress()
+        {
+            SetMoney(0);
+            SetLifetimeMoney(0);
         }
 
     }

@@ -17,5 +17,16 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 684624be3ea2dd2459e902b65b1643e2, type: 2}
   - {fileID: 11400000, guid: d6239204787456a48b700c0645ac69d1, type: 2}
   - {fileID: 11400000, guid: 74141cfa58f89f0469a9f1906582a166, type: 2}
-  PassiveAssets: []
+  PassiveAssets:
+  - {fileID: 11400000, guid: 993b451c29ff6e94d921ca1eb0eb4ed3, type: 2}
+  - {fileID: 11400000, guid: 37998b188b9991149820b9693e1040db, type: 2}
+  - {fileID: 11400000, guid: 736251f46310a7042a82b39470e6e2b6, type: 2}
+  - {fileID: 11400000, guid: 5a06f47a746aec249977bb8e84735bba, type: 2}
+  - {fileID: 11400000, guid: 12de0d9a3165a7f43bd4650886735d4b, type: 2}
   PrestigeNodes: []
+  TowerStages:
+  - {fileID: 11400000, guid: 5eaec3bb7ea712f4dbde97c7152c178d, type: 2}
+  - {fileID: 11400000, guid: fb13f00464ef5f643a19a8c6bd65ff35, type: 2}
+  - {fileID: 11400000, guid: 292b085fcc15f0d40bbca5de567faa24, type: 2}
+  - {fileID: 11400000, guid: 5e1fb50142e277741876f448d2ca1dc3, type: 2}
+  - {fileID: 11400000, guid: 4ca6265908f0dcc48860e74c91e41ccb, type: 2}
