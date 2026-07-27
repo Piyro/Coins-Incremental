@@ -1,6 +1,6 @@
+using CoinTowerIdle.Events;
 using CoinTowerIdle.Managers;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace CoinTowerIdle.CoinSystem
 {
@@ -36,23 +36,21 @@ namespace CoinTowerIdle.CoinSystem
             switch (rewardType)
             {
                 case RewardType.Bonus:
-
                     if (Random.value < bonusCoinChance)
                         reward *= 2;
-
                     break;
 
                 case RewardType.Jackpot:
-
                     if (Random.value < jackpotChance)
                         reward *= 50;
-
                     break;
             }
 
-            reward *= PrestigeManager.Instance.PrestigeMultiplier;
+            reward *= PrestigeController.Instance.PrestigeMultiplier;
 
             EconomyManager.Instance.AddMoney(reward);
+
+            EventBus.Publish(new MoneyAddedEvent(reward));
 
             coin.ReturnToPool();
         }

@@ -25,9 +25,7 @@ namespace CoinTowerIdle.Managers
         {
             Money += amount;
             LifetimeMoneyEarned += amount;
-            Debug.Log($"Money: {Money}");
 
-            dirty = true;
         }
         private void OnEnable()
         {

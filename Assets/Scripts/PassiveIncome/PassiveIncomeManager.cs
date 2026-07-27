@@ -17,6 +17,8 @@ namespace CoinTowerIdle.PassiveIncome
 
         public IReadOnlyList<PassiveAssetInstance> Assets => assets;
 
+        public double IncomePerSecond => totalIncomePerSecond;
+
         public double TotalIncomePerSecond => totalIncomePerSecond;
 
         private void Awake()
@@ -28,6 +30,7 @@ namespace CoinTowerIdle.PassiveIncome
                     Definition = definition
                 });
             }
+
 
             RecalculateIncome();
         }

@@ -54,10 +54,9 @@ namespace CoinTowerIdle.Tower
             if (visual != null)
                 visual.PlaySpawnAnimation();
         }
-
         public void ResetProgress()
         {
-            BuildStage(0);
+            ChangeStage(0);
         }
     }
 }

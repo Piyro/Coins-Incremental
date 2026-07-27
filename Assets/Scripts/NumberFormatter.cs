@@ -16,23 +16,20 @@ namespace CoinTowerIdle.Utilities
             "Sx",
             "Sp",
             "Oc",
-            "No",
-            "Dc"
+            "No"
         };
 
         public static string Format(double value)
         {
-            int suffix = 0;
+            int index = 0;
 
-            while (value >= 1000 &&
-                   suffix < suffixes.Length - 1)
+            while (value >= 1000 && index < suffixes.Length - 1)
             {
                 value /= 1000;
-                suffix++;
+                index++;
             }
 
-            return value.ToString("0.##") +
-                   suffixes[suffix];
+            return $"{value:0.##}{suffixes[index]}";
         }
     }
 }
