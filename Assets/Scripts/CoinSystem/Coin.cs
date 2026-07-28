@@ -1,12 +1,11 @@
 using System;
-using CoinTowerIdle.Pooling;
 using UnityEngine;
 
 namespace CoinTowerIdle.CoinSystem
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(Collider))]
-    public class Coin : PooledObject
+    public class Coin : MonoBehaviour
     {
         [Header("Components")]
         [SerializeField] private Rigidbody rb;
@@ -24,10 +23,6 @@ namespace CoinTowerIdle.CoinSystem
 
         public bool IsActive { get; private set; }
 
-        /// <summary>
-        /// Raised when this coin wants to return to the pool.
-        /// </summary>
-        public event Action<Coin> ReturnRequested;
 
         private void Reset()
         {
@@ -42,32 +37,14 @@ namespace CoinTowerIdle.CoinSystem
 
             lifeTimer = data.Lifetime;
 
-            transform.localScale = data.Scale;
-
             rb.mass = data.Mass;
-        }
-
-        public override void OnSpawn()
-        {
-            base.OnSpawn();
 
             IsActive = true;
 
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
-
-            rb.Sleep();
         }
 
-        public override void OnDespawn()
-        {
-            base.OnDespawn();
-
-            IsActive = false;
-
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-        }
 
         private void Update()
         {
@@ -78,7 +55,7 @@ namespace CoinTowerIdle.CoinSystem
 
             if (lifeTimer <= 0f)
             {
-                ReturnToPool();
+                Destroy(gameObject);
             }
         }
 
@@ -90,10 +67,10 @@ namespace CoinTowerIdle.CoinSystem
 
             rb.AddForce(impulse, ForceMode.Impulse);
         }
-
         public void ReturnToPool()
         {
-            ReturnRequested?.Invoke(this);
+            IsActive = false;
+            Destroy(gameObject);
         }
     }
 }

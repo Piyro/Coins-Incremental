@@ -7,7 +7,10 @@ namespace CoinTowerIdle.CoinSystem
     public class CoinSpawner : MonoBehaviour
     {
         [SerializeField]
-        private CoinPool pool;
+        private Coin coinPrefab;
+
+        [SerializeField]
+        private Vector3 coinScale = new(1f, 0.1f, 1f);
 
         [SerializeField]
         private Transform spawnPoint;
@@ -71,11 +74,6 @@ namespace CoinTowerIdle.CoinSystem
                 return;
             }
 
-            if (pool == null)
-            {
-                Debug.LogError("CoinPool is NULL");
-                return;
-            }
 
             if (spawnPoint == null)
             {
@@ -95,8 +93,16 @@ namespace CoinTowerIdle.CoinSystem
                 Vector3.down * settings.launchForce +
                 Random.insideUnitSphere * settings.randomHorizontalForce;
 
-            Coin coin = pool.Spawn(
-                data,
+            Coin coin = Instantiate(
+                coinPrefab,
+                spawnPoint.position + offset,
+                Quaternion.identity);
+
+            //coin.transform.localScale = coinScale;
+
+            coin.Initialize(data);
+
+            coin.Launch(
                 spawnPoint.position + offset,
                 impulse);
 
