@@ -120,7 +120,8 @@ Coins-Incremental/
 
 ## Screenshots
 
-None yet — there's nothing in the repo to pull from. If you're adding some later, a `docs/images` folder with a shot of the machine, the pusher in action, and the tower growing would go a long way toward making this README (or a store page) land better.
+<img width="1672" height="941" alt="Ekran görüntüsü 2026-08-10 081537" src="https://github.com/user-attachments/assets/f7da8633-02bc-479d-bf87-ae89d3465279" />
+
 
 ## What's probably next
 
