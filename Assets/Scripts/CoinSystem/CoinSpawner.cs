@@ -6,32 +6,47 @@ namespace CoinTowerIdle.CoinSystem
 {
     public class CoinSpawner : MonoBehaviour
     {
-        [SerializeField]
-        private Coin coinPrefab;
+        [Header("References")]
+        [SerializeField] private Coin coinPrefab;
+        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private CoinFactory coinFactory;
+        [SerializeField] private CoinSpawnSettings settings;
 
+        [Header("Coin")]
         [SerializeField]
-        private Vector3 coinScale = new(1f, 0.1f, 1f);
+        private Vector3 baseCoinScale = new(1f, 0.1f, 1f);
 
-        [SerializeField]
-        private Transform spawnPoint;
-
-        [SerializeField]
-        private CoinSpawnSettings settings;
-
-        [SerializeField]
-        private CoinFactory coinFactory;
-
+        [Header("Spawn")]
         [SerializeField]
         private DropPattern pattern = DropPattern.Single;
 
+        [SerializeField]
+        private Vector2 spawnSpread = new(0.08f, 0.02f);
+
         private float cooldown;
+
+        private void Awake()
+        {
+            if (coinPrefab == null)
+                Debug.LogError("Coin Prefab missing.", this);
+
+            if (spawnPoint == null)
+                Debug.LogError("Spawn Point missing.", this);
+
+            if (coinFactory == null)
+                Debug.LogError("Coin Factory missing.", this);
+
+            if (settings == null)
+                Debug.LogError("Coin Spawn Settings missing.", this);
+        }
 
         private void Update()
         {
             cooldown -= Time.deltaTime;
 
-            // Temporary debug input.
-            if (Keyboard.current != null && Keyboard.current.spaceKey.isPressed)
+            // Arcade drop button.
+            if (Mouse.current != null &&
+                Mouse.current.leftButton.wasPressedThisFrame)
             {
                 TrySpawn();
             }
@@ -41,6 +56,12 @@ namespace CoinTowerIdle.CoinSystem
         {
             if (cooldown > 0f)
                 return;
+
+            if (StatManager.Instance == null)
+            {
+                Debug.LogError("StatManager is missing.", this);
+                return;
+            }
 
             cooldown = StatManager.Instance.GetValue(
                 StatType.DropCooldown);
@@ -57,78 +78,70 @@ namespace CoinTowerIdle.CoinSystem
                     break;
 
                 case DropPattern.Triple:
-                    SpawnCoin(Vector3.left * 0.3f);
+                    SpawnCoin(Vector3.left * 0.30f);
                     SpawnCoin(Vector3.zero);
-                    SpawnCoin(Vector3.right * 0.3f);
+                    SpawnCoin(Vector3.right * 0.30f);
                     break;
             }
         }
 
-
-
         private void SpawnCoin(Vector3 offset)
         {
-            if (coinFactory == null)
+            if (coinFactory == null ||
+                coinPrefab == null ||
+                spawnPoint == null ||
+                settings == null)
             {
-                Debug.LogError("CoinFactory is NULL");
-                return;
-            }
+                Debug.LogError(
+                    "CoinSpawner is missing a required reference.",
+                    this);
 
-
-            if (spawnPoint == null)
-            {
-                Debug.LogError("SpawnPoint is NULL");
-                return;
-            }
-
-            if (settings == null)
-            {
-                Debug.LogError("CoinSpawnSettings is NULL");
                 return;
             }
 
             CoinData data = coinFactory.CreateCoin();
 
-            Vector3 impulse =
-                Vector3.down * settings.launchForce +
-                Random.insideUnitSphere * settings.randomHorizontalForce;
+            Vector3 randomOffset =
+                spawnPoint.right *
+                Random.Range(
+                    -spawnSpread.x,
+                    spawnSpread.x);
+
+            randomOffset +=
+                spawnPoint.forward *
+                Random.Range(
+                    -spawnSpread.y,
+                    spawnSpread.y);
+
+            Vector3 position =
+                spawnPoint.position +
+                offset +
+                randomOffset;
 
             Coin coin = Instantiate(
                 coinPrefab,
-                spawnPoint.position + offset,
-                Quaternion.identity);
-
-            //coin.transform.localScale = coinScale;
+                position,
+                spawnPoint.rotation);
 
             coin.Initialize(data);
 
-            coin.Launch(
-                spawnPoint.position + offset,
-                impulse);
+            coin.transform.localScale =
+                Vector3.Scale(
+                    baseCoinScale,
+                    data.Scale);
 
-            coin.Rigidbody.AddTorque(
-                Random.insideUnitSphere * settings.randomTorque,
-                ForceMode.Impulse);
-        }
+            // No launch force.
+            // Gravity handles the coin naturally.
+            coin.Rigidbody.linearVelocity = Vector3.zero;
+            coin.Rigidbody.angularVelocity = Vector3.zero;
 
-        private CoinType RollCoinType()
-        {
-            float r = Random.value;
-
-            if (r < settings.goldenChance)
-                return CoinType.Golden;
-
-            r -= settings.goldenChance;
-
-            if (r < settings.luckyChance)
-                return CoinType.Lucky;
-
-            r -= settings.luckyChance;
-
-            if (r < settings.criticalChance)
-                return CoinType.Critical;
-
-            return CoinType.Normal;
+            if (settings.randomTorque > 0f)
+            {
+                coin.Rigidbody.AddTorque(
+                    Random.insideUnitSphere *
+                    settings.randomTorque,
+                    ForceMode.Impulse);
+            }
         }
     }
 }

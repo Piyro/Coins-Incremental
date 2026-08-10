@@ -1,6 +1,5 @@
 using CoinTowerIdle.Stats;
 using UnityEngine;
-using UnityEngine.InputSystem; // Added: Required for New Input System mouse tracking
 
 namespace CoinTowerIdle.CoinSystem
 {
@@ -9,69 +8,127 @@ namespace CoinTowerIdle.CoinSystem
     public class DropperController : MonoBehaviour
     {
         [Header("Movement")]
-
-        private float MoveSpeed =>
-    StatManager.Instance.GetValue(StatType.MovementSpeed);
-
         [SerializeField]
         private bool useMouse = true;
 
         [SerializeField]
-        private float mouseFollowSpeed = 18f;
+        private float mouseFollowSpeed = 12f;
 
+        [SerializeField]
+        private float keyboardMoveSpeed = 1f;
+
+        [Header("References")]
+        [SerializeField]
         private DropperInput input;
+
+        [SerializeField]
         private DropperBounds bounds;
-        private Camera mainCamera; // Added: Cached camera reference for performance
+
+        private float MoveSpeed
+        {
+            get
+            {
+                if (StatManager.Instance == null)
+                    return 1f;
+
+                return StatManager.Instance.GetValue(
+                    StatType.MovementSpeed);
+            }
+        }
 
         private void Awake()
         {
-            input = GetComponent<DropperInput>();
-            bounds = GetComponent<DropperBounds>();
-            mainCamera = Camera.main; // Caches the main camera
+            if (input == null)
+                input = GetComponent<DropperInput>();
+
+            if (bounds == null)
+                bounds = GetComponent<DropperBounds>();
         }
 
         private void Update()
         {
-            Vector3 position = transform.position;
+            if (input == null ||
+                bounds == null)
+            {
+                return;
+            }
 
             if (useMouse)
             {
-                // FIX: Ensure both the keyboard/mouse hardware and the camera exist
-                if (Mouse.current != null && mainCamera != null)
-                {
-                    // 1. Get raw screen pixel coordinates from the mouse
-                    Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
-
-                    // 2. CRITICAL: Calculate the exact distance between the camera and this dropper.
-                    // This gives ScreenToWorldPoint the depth it needs to calculate world math accurately.
-                    float cameraDepthOffset = Mathf.Abs(mainCamera.transform.position.z - transform.position.z);
-
-                    // 3. Convert screen pixels to actual 3D space vectors
-                    Vector3 mouseWorldCoordinates = mainCamera.ScreenToWorldPoint(new Vector3(
-                        mouseScreenPosition.x,
-                        mouseScreenPosition.y,
-                        cameraDepthOffset
-                    ));
-
-                    // 4. Smoothly interpolate to the newly calculated X axis coordinate
-                    position.x = Mathf.Lerp(
-                        position.x,
-                        mouseWorldCoordinates.x,
-                        mouseFollowSpeed * Time.deltaTime);
-                }
+                HandleMouseMovement();
             }
             else
             {
-                position.x +=
-                    input.Horizontal *
-                    MoveSpeed *
-                    Time.deltaTime;
+                HandleKeyboardMovement();
             }
-
-            position.x = bounds.Clamp(position.x);
-
-            transform.position = position;
         }
 
+        private void HandleMouseMovement()
+        {
+            if (!input.MouseAvailable)
+            {
+                HandleKeyboardMovement();
+                return;
+            }
+
+            float targetDistance =
+                bounds.GetDistance(
+                    input.MouseWorld);
+
+            targetDistance =
+                bounds.ClampDistance(
+                    targetDistance);
+
+            float currentDistance =
+                bounds.GetDistance(
+                    transform.position);
+
+            float smoothSpeed =
+                mouseFollowSpeed * MoveSpeed;
+
+            float newDistance =
+                Mathf.Lerp(
+                    currentDistance,
+                    targetDistance,
+                    1f - Mathf.Exp(
+                        -smoothSpeed *
+                        Time.deltaTime));
+
+            transform.position =
+                bounds.GetPosition(
+                    newDistance);
+        }
+
+        private void HandleKeyboardMovement()
+        {
+            float inputValue =
+                input.Horizontal;
+
+            if (Mathf.Approximately(
+                inputValue,
+                0f))
+            {
+                return;
+            }
+
+            float currentDistance =
+                bounds.GetDistance(
+                    transform.position);
+
+            float newDistance =
+                currentDistance +
+                inputValue *
+                MoveSpeed *
+                keyboardMoveSpeed *
+                Time.deltaTime;
+
+            newDistance =
+                bounds.ClampDistance(
+                    newDistance);
+
+            transform.position =
+                bounds.GetPosition(
+                    newDistance);
+        }
     }
 }

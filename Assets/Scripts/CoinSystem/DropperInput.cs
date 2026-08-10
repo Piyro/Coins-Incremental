@@ -9,58 +9,74 @@ namespace CoinTowerIdle.CoinSystem
 
         public Vector3 MouseWorld { get; private set; }
 
-        [SerializeField]
-        private Camera mainCamera;
+        public bool MouseAvailable =>
+            Mouse.current != null;
 
         [SerializeField]
-        private LayerMask groundMask;
+        private Camera mainCamera;
 
         private void Awake()
         {
             if (mainCamera == null)
                 mainCamera = Camera.main;
+
+            if (mainCamera == null)
+            {
+                Debug.LogError(
+                    "DropperInput: No camera found.",
+                    this);
+            }
         }
 
         private void Update()
         {
+            ReadKeyboard();
+            ReadMouse();
+        }
+
+        private void ReadKeyboard()
+        {
             Horizontal = 0f;
 
-            if (Keyboard.current != null)
-            {
-                if (Keyboard.current.aKey.isPressed ||
-                    Keyboard.current.leftArrowKey.isPressed)
-                {
-                    Horizontal = -1f;
-                }
-
-                if (Keyboard.current.dKey.isPressed ||
-                    Keyboard.current.rightArrowKey.isPressed)
-                {
-                    Horizontal = 1f;
-                }
-            }
-
-            if (Mouse.current == null || mainCamera == null)
+            if (Keyboard.current == null)
                 return;
 
-            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-            // 1. Try your original physics raycast setup
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f, groundMask))
+            if (Keyboard.current.aKey.isPressed ||
+                Keyboard.current.leftArrowKey.isPressed)
             {
-                MouseWorld = hit.point;
+                Horizontal = -1f;
             }
-            else
-            {
-                // 2. FIX/FALLBACK: If the physics raycast misses or layers aren't configured,
-                // project the mouse ray onto an invisible mathematical plane passing through this dropper.
-                // This makes the mouse system bulletproof without needing physical colliders.
-                Plane fallbackPlane = new Plane(-mainCamera.transform.forward, transform.position);
 
-                if (fallbackPlane.Raycast(ray, out float distance))
-                {
-                    MouseWorld = ray.GetPoint(distance);
-                }
+            if (Keyboard.current.dKey.isPressed ||
+                Keyboard.current.rightArrowKey.isPressed)
+            {
+                Horizontal = 1f;
+            }
+        }
+
+        private void ReadMouse()
+        {
+            if (Mouse.current == null ||
+                mainCamera == null)
+            {
+                return;
+            }
+
+            Vector2 mousePosition =
+                Mouse.current.position.ReadValue();
+
+            Ray ray =
+                mainCamera.ScreenPointToRay(mousePosition);
+
+            // Create a plane facing the camera.
+            // The plane passes through the dropper.
+            Plane plane = new Plane(
+                -mainCamera.transform.forward,
+                transform.position);
+
+            if (plane.Raycast(ray, out float distance))
+            {
+                MouseWorld = ray.GetPoint(distance);
             }
         }
     }

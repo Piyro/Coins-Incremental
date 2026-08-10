@@ -4,28 +4,103 @@ namespace CoinTowerIdle.CoinSystem
 {
     public class DropperBounds : MonoBehaviour
     {
+        [Header("Movement Direction")]
         [SerializeField]
-        private float minX = -4f;
+        private Transform movementDirection;
+
+        [Header("Rail Limits")]
+        [SerializeField]
+        private float minDistance = -4f;
 
         [SerializeField]
-        private float maxX = 4f;
+        private float maxDistance = 4f;
 
-        public float Clamp(float x)
+        public Vector3 Direction
         {
-            return Mathf.Clamp(x, minX, maxX);
+            get
+            {
+                if (movementDirection != null)
+                    return movementDirection.right.normalized;
+
+                return Vector3.right;
+            }
+        }
+
+        public Vector3 Origin
+        {
+            get
+            {
+                if (movementDirection != null)
+                    return movementDirection.position;
+
+                return transform.position;
+            }
+        }
+
+        public float MinDistance => minDistance;
+
+        public float MaxDistance => maxDistance;
+
+        public float GetDistance(Vector3 position)
+        {
+            return Vector3.Dot(
+                position - Origin,
+                Direction);
+        }
+
+        public float ClampDistance(float distance)
+        {
+            return Mathf.Clamp(
+                distance,
+                minDistance,
+                maxDistance);
+        }
+
+        public Vector3 GetPosition(float distance)
+        {
+            distance = ClampDistance(distance);
+
+            return Origin + Direction * distance;
+        }
+
+        public Vector3 Clamp(Vector3 position)
+        {
+            float distance = GetDistance(position);
+
+            return GetPosition(distance);
         }
 
 #if UNITY_EDITOR
-        private void OnDrawGizmos()
+        private void OnDrawGizmosSelected()
         {
+            Vector3 origin = Origin;
+            Vector3 direction = Direction;
+
+            Vector3 left =
+                origin + direction * minDistance;
+
+            Vector3 right =
+                origin + direction * maxDistance;
+
             Gizmos.color = Color.yellow;
 
-            Vector3 left = new(minX, transform.position.y, transform.position.z);
-            Vector3 right = new(maxX, transform.position.y, transform.position.z);
+            Gizmos.DrawLine(
+                left,
+                right);
 
-            Gizmos.DrawSphere(left, 0.15f);
-            Gizmos.DrawSphere(right, 0.15f);
-            Gizmos.DrawLine(left, right);
+            Gizmos.DrawSphere(
+                left,
+                0.15f);
+
+            Gizmos.DrawSphere(
+                right,
+                0.15f);
+
+            Gizmos.color = Color.cyan;
+
+            Gizmos.DrawLine(
+                origin,
+                origin + direction * 1.5f);
         }
 #endif
     }
